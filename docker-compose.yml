@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: jubas-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: jubas_user
+      POSTGRES_PASSWORD: VTWpyf1234!
+      POSTGRES_DB: jubas_tracker
+    volumes:
+      - jubas-pg-data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - jubas-net
+
+  backend:
+    build: ./backend
+    container_name: jubas-backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: jubas_tracker
+      DB_USER: jubas_user
+      DB_PASSWORD: VTWpyf1234!
+      PORT: 1337
+    depends_on:
+      - postgres
+    networks:
+      - jubas-net
+
+  frontend:
+    build: ./frontend
+    container_name: jubas-frontend
+    restart: unless-stopped
+    ports:
+      - "1337:80"
+    depends_on:
+      - backend
+    networks:
+      - jubas-net
+
+volumes:
+  jubas-pg-data:
+
+networks:
+  jubas-net:
+    driver: bridge
